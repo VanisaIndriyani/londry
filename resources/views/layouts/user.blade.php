@@ -381,6 +381,10 @@
     @stack('styles')
 </head>
 <body>
+    @php
+        $isHomeRoute = request()->routeIs('home');
+        $isCheckStatusRoute = request()->routeIs('check-status');
+    @endphp
     <nav class="navbar navbar-expand-lg site-navbar">
         <div class="container">
             <a class="navbar-brand navbar-brand-clean" href="{{ route('home') }}">
@@ -399,16 +403,16 @@
             <div class="collapse navbar-collapse" id="navbarUser">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('home') }}">Beranda</a>
+                        <a class="nav-link {{ $isHomeRoute ? 'active' : '' }}" href="{{ route('home') }}" data-nav-key="beranda">Beranda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#services">Layanan</a>
+                        <a class="nav-link" href="{{ route('home') }}#services" data-nav-key="layanan">Layanan</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}#pickup">Pesan</a>
+                        <a class="nav-link" href="{{ route('home') }}#pickup" data-nav-key="pesan">Pesan</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('check-status') }}">Cek Status</a>
+                        <a class="nav-link {{ $isCheckStatusRoute ? 'active' : '' }}" href="{{ route('check-status') }}" data-nav-key="cek-status">Cek Status</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2 navbar-actions">
@@ -523,6 +527,48 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('[data-nav-key]');
+            const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+
+            const setActiveNav = (activeKey) => {
+                navLinks.forEach((link) => {
+                    link.classList.toggle('active', link.dataset.navKey === activeKey);
+                });
+            };
+
+            const updateActiveFromLocation = () => {
+                if (currentPath.endsWith('/check-status')) {
+                    setActiveNav('cek-status');
+                    return;
+                }
+
+                if (!currentPath.endsWith('/') && !currentPath.endsWith('/public') && !currentPath.endsWith('/public/')) {
+                    return;
+                }
+
+                const hash = window.location.hash;
+
+                if (hash === '#services') {
+                    setActiveNav('layanan');
+                } else if (hash === '#pickup') {
+                    setActiveNav('pesan');
+                } else {
+                    setActiveNav('beranda');
+                }
+            };
+
+            navLinks.forEach((link) => {
+                link.addEventListener('click', function () {
+                    setActiveNav(this.dataset.navKey);
+                });
+            });
+
+            window.addEventListener('hashchange', updateActiveFromLocation);
+            updateActiveFromLocation();
+        });
+    </script>
     @yield('scripts')
 </body>
 </html>
